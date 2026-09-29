@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#141416" />
+    <title>CineTrack</title>
+    <!-- Install metadata, mirroring the root layout's: "Add to Home Screen"
+         reads the CURRENT page, so installing from the shell must yield the
+         same name/icon/start_url as installing from any app page. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/apple-icon.png" sizes="180x180" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="CineTrack" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!-- The offline shell:
+         sw.js serves it when an app navigation fails with nothing usable
+         cached. The document URL stays the requested one, so after the boop
+         the script retries that URL; if still offline, the next copy of this
+         shell remembers the boop and rests at the panel. Direct visits to
+         /shell.html return to the canonical root after the boop.
+         Session-agnostic by construction (same bytes for every user), so
+         caching it can never leak another session's state — see the note at
+         the top of public/sw.js.
+
+         The gate below is an inline, dependency-free mirror of
+         src/components/cat/cat-boop-gate.tsx: same sessionStorage contract
+         ("cinetrack:booped" + <html data-cat-booped>), same guardrails
+         (Enter boops, Escape skips, reduced-motion still celebrates, blocked
+         storage never locks the gate). Everything is inline on purpose —
+         this file must render and boop with zero network. Keep it in sync
+         when the React gate changes. -->
+    <script>
+      try {
+        if (sessionStorage.getItem("cinetrack:booped"))
+          document.documentElement.setAttribute("data-cat-booped", "");
+      } catch (e) {}
+    </script>
+    <noscript>
+      <style>
+        /* No JS means no way to boop — skip straight to the offline panel. */
+        #gate { display: none !important; }
+        #panel { display: block !important; }
+      </style>
+    </noscript>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100svh;
+        display: grid;
+        place-items: center;
+        background: #141416;
+        color: #fafafa;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        text-align: center;
+      }
+
+      /* ── Boop gate ──────────────────────────────────────────────────── */
+      #gate {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2rem;
+        background: #141416;
+      }
+      #gate.gone,
+      html[data-cat-booped] #gate { display: none; }
+
+      /* The panel only ever appears by script decision (showPanel) — a
+         pre-booped ENTRY launch must not flash "You're offline" while it
+         hands off to the app. */
+      #panel { display: none; padding: 2rem; }
+      #panel.show { display: block; }
+
+      .cat-wrap { position: relative; transform-origin: 50% 90%; }
+      #gate:not(.booped) .cat-wrap { animation: cat-sway 3.5s ease-in-out infinite; }
+      #gate.booped .cat-wrap { animation: boop-squish 500ms ease-out; }
+
+      .cat { display: block; width: 224px; }
+      @media (min-width: 640px) { .cat { width: 256px; } }
+
+      .ear-left { transform-origin: 52px 62px; }
+      .ear-right { transform-origin: 148px 62px; }
+      #gate.booped .ear-left { animation: ear-wiggle 600ms ease-out; }
+      #gate.booped .ear-right { animation: ear-wiggle 600ms ease-out 80ms; }
+
+      /* Eyes and mouth swap from neutral to happy on the boop. */
+      .booped-only { display: none; }
+      #gate.booped .booped-only { display: inline; }
+      #gate.booped .idle-only { display: none; }
+
+      .blush { opacity: 0; transition: opacity 300ms; }
+      #gate.booped .blush { opacity: 0.6; }
+
+      .hearts { position: absolute; inset: 0; pointer-events: none; }
+      .heart { position: absolute; font-size: 20px; opacity: 0; }
+      #gate.booped .heart {
+        animation: heart-float 900ms ease-out forwards;
+        animation-delay: var(--d);
+      }
+
+      #nose {
+        position: absolute;
+        left: 50%;
+        top: 68%;
+        width: 48px;
+        height: 48px;
+        transform: translate(-50%, -50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        cursor: pointer;
+        outline: none;
+        transition: transform 150ms;
+      }
+      #nose:hover { transform: translate(-50%, -50%) scale(1.1); }
+      #nose:active { transform: translate(-50%, -50%) scale(0.9); }
+      .nose-tip {
+        display: block;
+        width: 20px;
+        height: 20px;
+        border-radius: 45% 45% 60% 60%;
+        background: #fbd737;
+        box-shadow: 0 0 14px rgba(251, 215, 55, 0.4);
+        clip-path: polygon(0 18%, 100% 18%, 50% 100%);
+      }
+
+      #hint {
+        margin: 0;
+        font-size: 14px;
+        color: #a1a1aa;
+        animation: hint-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      #purr {
+        margin: 0;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 14px;
+        letter-spacing: 0.1em;
+        color: #fbd737;
+      }
+      #gate:not(.booped) #purr { display: none; }
+      #gate.booped #hint { display: none; }
+      #gate.booped #purr { animation: purr-fade 950ms ease-out forwards; }
+
+      #gate.leaving { animation: gate-out 350ms ease-in forwards; }
+
+      /* ── Offline panel (post-boop) ──────────────────────────────────── */
+      .tile {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 1rem;
+        border-radius: 16px;
+        background: #fbd737;
+        display: grid;
+        place-items: center;
+      }
+      h1 { font-size: 1.25rem; margin: 0 0 0.5rem; }
+      #panel p { color: #a1a1aa; font-size: 0.9rem; margin: 0 0 1.5rem; }
+      .retry {
+        border: 0;
+        border-radius: 10px;
+        padding: 0.6rem 1.4rem;
+        font: inherit;
+        font-weight: 600;
+        background: #fbd737;
+        color: #1c1c1f;
+        cursor: pointer;
+      }
+      .auto-note { font-size: 0.8rem; margin-top: 1rem; }
+
+      /* Keyframes copied from src/app/globals.css — keep in sync. */
+      @keyframes cat-sway {
+        0%, 100% { transform: rotate(-1.5deg); }
+        50% { transform: rotate(1.5deg); }
+      }
+      @keyframes boop-squish {
+        0% { transform: scale(1); }
+        35% { transform: scale(1.1, 0.87); }
+        70% { transform: scale(0.97, 1.04); }
+        100% { transform: scale(1); }
+      }
+      @keyframes ear-wiggle {
+        0%, 100% { transform: rotate(0deg); }
+        30% { transform: rotate(-12deg); }
+        65% { transform: rotate(8deg); }
+      }
+      @keyframes heart-float {
+        0% { opacity: 0; transform: translateY(8px) scale(0.4); }
+        25% { opacity: 1; }
+        100% { opacity: 0; transform: translateY(-52px) scale(1.15); }
+      }
+      @keyframes purr-fade {
+        0% { opacity: 0; }
+        25% { opacity: 1; }
+        100% { opacity: 0; letter-spacing: 0.4em; }
+      }
+      @keyframes gate-out {
+        to { opacity: 0; transform: scale(1.05); }
+      }
+      @keyframes hint-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      /* Reduced motion: celebration still happens, it just holds still —
+         happy face + hearts appear without bouncing, then a plain fade. */
+      @media (prefers-reduced-motion: reduce) {
+        #gate:not(.booped) .cat-wrap,
+        #gate.booped .cat-wrap,
+        #gate.booped .ear-left,
+        #gate.booped .ear-right,
+        #hint { animation: none; }
+        #gate.booped .heart { animation: none; opacity: 1; }
+        #gate.booped #purr { animation: none; }
+        #gate.leaving { animation: none; opacity: 0; transition: opacity 300ms ease-in; }
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="gate"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Boop the cat's nose to enter CineTrack"
+    >
+      <div class="cat-wrap">
+        <div class="hearts" aria-hidden="true">
+          <span class="heart" style="left: 18%; top: 30%; --d: 0ms">💛</span>
+          <span class="heart" style="left: 70%; top: 22%; --d: 120ms">💛</span>
+          <span class="heart" style="left: 42%; top: 12%; --d: 240ms">💛</span>
+          <span class="heart" style="left: 82%; top: 48%; --d: 90ms">💛</span>
+          <span class="heart" style="left: 8%; top: 55%; --d: 200ms">💛</span>
+        </div>
+
+        <svg class="cat" viewBox="0 0 200 170" fill="none" aria-hidden="true">
+          <g class="ear-left">
+            <path d="M38 70 L48 14 L88 46 Z" fill="#27272a" />
+            <path d="M48 60 L54 28 L76 46 Z" fill="#fbd737" fill-opacity="0.8" />
+          </g>
+          <g class="ear-right">
+            <path d="M162 70 L152 14 L112 46 Z" fill="#27272a" />
+            <path d="M152 60 L146 28 L124 46 Z" fill="#fbd737" fill-opacity="0.8" />
+          </g>
+
+          <circle cx="100" cy="100" r="66" fill="#27272a" />
+
+          <g class="idle-only">
+            <ellipse cx="73" cy="92" rx="9" ry="12" fill="#fbd737" />
+            <ellipse cx="127" cy="92" rx="9" ry="12" fill="#fbd737" />
+            <ellipse cx="73" cy="92" rx="3" ry="9" fill="#18181b" />
+            <ellipse cx="127" cy="92" rx="3" ry="9" fill="#18181b" />
+          </g>
+          <g class="booped-only">
+            <path d="M62 92 Q73 82 84 92" stroke="#fbd737" stroke-width="5" stroke-linecap="round" />
+            <path d="M116 92 Q127 82 138 92" stroke="#fbd737" stroke-width="5" stroke-linecap="round" />
+          </g>
+
+          <circle class="blush" cx="56" cy="112" r="7" fill="#f87171" />
+          <circle class="blush" cx="144" cy="112" r="7" fill="#f87171" />
+
+          <g stroke="#71717a" stroke-width="2" stroke-linecap="round">
+            <path d="M14 104 L52 108" />
+            <path d="M16 120 L52 118" />
+            <path d="M186 104 L148 108" />
+            <path d="M184 120 L148 118" />
+          </g>
+
+          <path
+            class="idle-only"
+            d="M88 132 Q94 138 100 132 Q106 138 112 132"
+            stroke="#71717a" stroke-width="3" stroke-linecap="round" fill="none"
+          />
+          <path
+            class="booped-only"
+            d="M88 132 Q100 144 112 132"
+            stroke="#a1a1aa" stroke-width="4" stroke-linecap="round"
+          />
+        </svg>
+
+        <button id="nose" type="button" autofocus aria-label="Boop the cat's nose to enter">
+          <span class="nose-tip" aria-hidden="true"></span>
+        </button>
+      </div>
+
+      <p id="hint">Boop the nose to enter</p>
+      <p id="purr" aria-hidden="true">purrrrrr</p>
+    </div>
+
+    <main id="panel">
+      <div class="tile" aria-hidden="true">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#1c1c1f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m12.296 3.464 3.02 3.956"/>
+          <path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3z"/>
+          <path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <path d="m6.18 5.276 3.1 3.899"/>
+        </svg>
+      </div>
+      <h1>You&rsquo;re offline</h1>
+      <p>CineTrack needs a connection to load this page.</p>
+      <button class="retry" id="retry">Try again</button>
+      <p class="auto-note">We&rsquo;ll reload automatically once you&rsquo;re back online.</p>
+    </main>
+
+    <script>
+      (function () {
+        var KEY = "cinetrack:booped";
+        var gate = document.getElementById("gate");
+        var panel = document.getElementById("panel");
+        var nose = document.getElementById("nose");
+        // A direct shell visit returns to the canonical root. Any other URL
+        // means the SW served us as that navigation's offline fallback:
+        // post-boop we retry it, and a shell that already remembers the boop
+        // is the dead end that shows the panel.
+        var isEntry = location.pathname === "/shell.html";
+        var target = isEntry ? "/" : location.href;
+        var phase = "idle"; // idle → booped → (leaving) → gone
+        var storageBlocked = false;
+
+        function showPanel() {
+          phase = "gone";
+          gate.classList.add("gone");
+          panel.classList.add("show");
+          document.body.style.overflow = "";
+        }
+
+        // Hand off to the real page. Deliberately no fade: the cat stays on
+        // screen until the browser commits the next document, so a slow
+        // network never strands the user on a blank screen.
+        function leave() {
+          phase = "gone";
+          location.replace(target);
+        }
+
+        function unlock(now) {
+          if (phase !== "idle" && phase !== "booped") return;
+          try {
+            sessionStorage.setItem(KEY, "1");
+          } catch (e) {
+            storageBlocked = true;
+          }
+          document.documentElement.setAttribute("data-cat-booped", "");
+          // Fallback context with unwritable storage: retrying the URL would
+          // just re-serve this shell with nothing remembering the boop — stop
+          // at the panel instead of looping the cat.
+          if (!isEntry && storageBlocked) {
+            if (now) {
+              showPanel();
+            } else {
+              phase = "leaving";
+              gate.classList.add("leaving");
+              setTimeout(showPanel, 350);
+            }
+            return;
+          }
+          leave();
+        }
+
+        function boop() {
+          if (phase !== "idle") return;
+          phase = "booped";
+          if (navigator.vibrate) navigator.vibrate([18, 40, 8]);
+          gate.classList.add("booped");
+          setTimeout(function () { unlock(false); }, 950);
+        }
+
+        var alreadyBooped = false;
+        try {
+          alreadyBooped = !!sessionStorage.getItem(KEY);
+        } catch (e) {
+          storageBlocked = true;
+          /* storage blocked — keep the gate usable, it still boops away */
+        }
+
+        if (alreadyBooped) {
+          // Booped earlier this session (gate is already CSS-hidden pre-paint).
+          // Direct shell visit: straight into the app. Fallback: we ARE the
+          // dead end for an offline navigation — show the panel.
+          if (isEntry) leave();
+          else showPanel();
+        } else {
+          document.body.style.overflow = "hidden";
+          nose.addEventListener("click", boop);
+          window.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") unlock(true);
+          });
+          nose.focus({ preventScroll: true });
+        }
+
+        document.getElementById("retry").addEventListener("click", function () {
+          location.reload();
+        });
+        // Connectivity is back while the panel is resting: reload, which now
+        // reaches the real page. (While the gate is up, no action is needed —
+        // the post-boop hand-off will hit the network anyway.)
+        window.addEventListener("online", function () {
+          if (panel.classList.contains("show")) location.reload();
+        });
+      })();
+    </script>
+  </body>
+</html>

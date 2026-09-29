@@ -1,0 +1,65 @@
+project_id = "episode"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/auth/callback"]
+# Access token lifetime — kept moderate; refresh_token_rotation silently
+# renews it in the background, so this mostly controls refresh frequency,
+# not how long a user actually stays signed in.
+jwt_expiry = 28800
+enable_refresh_token_rotation = true
+# Concurrent requests (Next.js prefetching, parallel middleware runs) can
+# both trigger a refresh within a few seconds of each other. A 10s reuse
+# window is tight enough that this gets flagged as token theft and the whole
+# session is revoked — forcing a real re-login instead of a silent refresh.
+# Match this value in the hosted project's dashboard (Authentication →
+# Sessions → Refresh token reuse interval) for production.
+refresh_token_reuse_interval = 60
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+# Local dev: no email-link step, signup creates a confirmed session immediately.
+# Set true (and use Inbucket at :54324) to exercise the real confirmation flow.
+enable_confirmations = false
+
+# OAuth providers (export proves multi-provider accounts: apple + native).
+# The export proves multi-provider accounts (apple + native). Enable these and
+# fill client ids/secrets in .env to test OAuth; disabled by default so
+# `supabase start` works with no OAuth credentials on hand.
+[auth.external.google]
+enabled = false
+client_id = "env(SUPABASE_AUTH_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_GOOGLE_SECRET)"
+redirect_uri = "http://localhost:54321/auth/v1/callback"
+
+[auth.external.apple]
+enabled = false
+client_id = "env(SUPABASE_AUTH_APPLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_APPLE_SECRET)"
+redirect_uri = "http://localhost:54321/auth/v1/callback"
+
+[analytics]
+enabled = false

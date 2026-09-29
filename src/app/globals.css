@@ -1,0 +1,300 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-geist-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.879 0.169 96.7); /* TV-Time-ish #fbd737 */
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.803 0.132 96.7);
+  --chart-1: oklch(0.879 0.169 96.7);
+  --chart-2: oklch(0.666 0.126 96.7);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.606 0.25 292.717);
+  --chart-5: oklch(0.696 0.17 162.48);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.13 0.005 285.8);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.18 0.006 285.9);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.18 0.006 285.9);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.879 0.169 96.7); /* TV-Time-ish #fbd737 */
+  --primary-foreground: oklch(0.16 0.01 96.7);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.703 0.135 96.7);
+  --chart-1: oklch(0.879 0.169 96.7);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.18 0.006 285.9);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+}
+
+/* Custom Accent Colors */
+:root[data-accent="cyan"] {
+  --primary: oklch(0.68 0.16 195);
+  --ring: oklch(0.68 0.16 195);
+  --primary-foreground: oklch(0.99 0.01 195);
+}
+:root[data-accent="rose"] {
+  --primary: oklch(0.62 0.22 18);
+  --ring: oklch(0.62 0.22 18);
+  --primary-foreground: oklch(0.99 0.01 18);
+}
+:root[data-accent="violet"] {
+  --primary: oklch(0.58 0.22 285);
+  --ring: oklch(0.58 0.22 285);
+  --primary-foreground: oklch(0.99 0.01 285);
+}
+:root[data-accent="emerald"] {
+  --primary: oklch(0.62 0.17 145);
+  --ring: oklch(0.62 0.17 145);
+  --primary-foreground: oklch(0.99 0.01 145);
+}
+
+.dark[data-accent="cyan"] {
+  --primary: oklch(0.72 0.15 195);
+  --ring: oklch(0.72 0.15 195);
+  --primary-foreground: oklch(0.12 0.02 195);
+}
+.dark[data-accent="rose"] {
+  --primary: oklch(0.65 0.22 18);
+  --ring: oklch(0.65 0.22 18);
+  --primary-foreground: oklch(0.12 0.02 18);
+}
+.dark[data-accent="violet"] {
+  --primary: oklch(0.65 0.21 285);
+  --ring: oklch(0.65 0.21 285);
+  --primary-foreground: oklch(0.12 0.02 285);
+}
+.dark[data-accent="emerald"] {
+  --primary: oklch(0.74 0.16 145);
+  --ring: oklch(0.74 0.16 145);
+  --primary-foreground: oklch(0.12 0.02 145);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+  html, body {
+    touch-action: pan-x pan-y;
+  }
+  body:has([data-slot="dialog-content"]) {
+    overflow: hidden !important;
+  }
+  @media (max-width: 767px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+  }
+}
+/* ── Cat gamification ──────────────────────────────────────────────────── */
+@keyframes cat-sway {
+  0%, 100% { transform: rotate(-1.5deg); }
+  50% { transform: rotate(1.5deg); }
+}
+@keyframes boop-squish {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.1, 0.87); }
+  70% { transform: scale(0.97, 1.04); }
+  100% { transform: scale(1); }
+}
+@keyframes ear-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  30% { transform: rotate(-12deg); }
+  65% { transform: rotate(8deg); }
+}
+@keyframes heart-float {
+  0% { opacity: 0; transform: translateY(8px) scale(0.4); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-52px) scale(1.15); }
+}
+@keyframes purr-fade {
+  0% { opacity: 0; }
+  25% { opacity: 1; }
+  100% { opacity: 0; letter-spacing: 0.4em; }
+}
+@keyframes gate-out {
+  to { opacity: 0; transform: scale(1.05); }
+}
+/* Active nap-less loader: a cat batting a spinning ball of yarn. */
+@keyframes yarn-spin {
+  to { transform: rotate(1turn); }
+}
+@keyframes paw-bat {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-13deg); }
+}
+@keyframes tail-flick {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-12deg); }
+}
+/* Nav mascot tail — swishes from its base. */
+@keyframes tail-wave {
+  0%, 100% { transform: rotate(-9deg); }
+  50% { transform: rotate(14deg); }
+}
+@keyframes cat-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.1); }
+}
+
+/* ── Boop celebration (the moment the nose is tapped) ─────────────────────── */
+/* Whole cat leaps on the boop, then settles. */
+@keyframes boop-pop {
+  0% { transform: scale(1); }
+  28% { transform: scale(1.18) rotate(-2.5deg); }
+  55% { transform: scale(0.95) rotate(1.5deg); }
+  80% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+/* Soft radial glow blooms behind the cat. */
+@keyframes glow-pop {
+  0% { opacity: 0; transform: scale(0.35); }
+  40% { opacity: 0.6; }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+/* A ring of light expands outward, like a pressed button's ripple. */
+@keyframes ring-expand {
+  0% { opacity: 0.75; transform: scale(0.25); }
+  100% { opacity: 0; transform: scale(1.7); }
+}
+/* Confetti/paw-print particles fly outward along per-particle vectors. */
+@keyframes particle-burst {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.3) rotate(0deg); }
+  12% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--rot));
+  }
+}
+/* "boop!" label springs in. */
+@keyframes label-pop {
+  0% { opacity: 0; transform: translateY(12px) scale(0.6); }
+  45% { opacity: 1; transform: translateY(0) scale(1.12); }
+  65% { transform: scale(1); }
+  100% { opacity: 1; }
+}
+
+/* Pre-paint kill switch: an inline script stamps <html data-cat-booped> from
+   sessionStorage so returning visitors never see the gate flash. */
+html[data-cat-booped] .cat-boop-gate { display: none; }
+
+/* Loader parts: the yarn spins (the actual spinner), the paw bats at it, the
+   tail flicks. All freeze under the reduced-motion rule below into a still scene. */
+.cat-yarn {
+  animation: yarn-spin 0.9s linear infinite;
+}
+.cat-paw-bat {
+  animation: paw-bat 0.7s ease-in-out infinite;
+}
+.cat-tail-flick {
+  animation: tail-flick 1.5s ease-in-out infinite;
+}
+
+/* Motion-sensitive users: kill the bouncy keyframes, but keep the OPACITY
+   crossfade that dissolves the gate (a fade has no vestibular effect, and it's
+   a transition — not an animation — so this rule leaves it alone). The
+   component also skips rendering the particle/glow layers under this preference,
+   so what remains is a calm static celebration rather than nothing at all. */
+@media (prefers-reduced-motion: reduce) {
+  /* The boop gate handles reduced motion in JS — it shows a calm, still
+     celebration rather than skipping it. Freeze the purely decorative bits:
+     the loader and the nav mascot's tail/blink. */
+  .cat-loader *,
+  .cat-tail,
+  .cat-blink { animation: none !important; }
+}
